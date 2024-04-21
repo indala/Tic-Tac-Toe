@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    .container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 5px;
+      margin-bottom: 20px;
+      background-color: #444;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background-color: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 36px;
+      cursor: pointer;
+    }
+
+    .message {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    #resetBtn {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #resetBtn:hover {
+      background-color: #0056b3;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #000;
+      }
+
+      .cell {
+        background-color: #333;
+        color: #fff;
+      }
+
+      .board {
+        background-color: #222;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Tic-Tac-Toe</h1>
+    <div id="board" class="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <div id="message" class="message"></div>
+    <button id="resetBtn">Reset</button>
+  </div>
+  
+  <script>
+    const board = document.getElementById('board');
+const message = document.getElementById('message');
+const resetBtn = document.getElementById('resetBtn');
+
+let currentPlayer = 'X';
+let boardState = Array(9).fill('');
+let gameOver = false;
+
+function handleClick(event) {
+  if (gameOver) return;
+
+  const cell = event.target;
+  console.log(event);
+  const index = parseInt(cell.dataset.index);
+
+  if (boardState[index] === '') {
+    cell.textContent = currentPlayer;
+    boardState[index] = currentPlayer;
+
+    if (checkWinner(currentPlayer)) {
+      message.textContent = `${currentPlayer} wins!`;
+      gameOver = true;
+    } else if (checkDraw()) {
+      message.textContent = 'It\'s a draw!';
+      gameOver = true;
+    } else {
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      if (currentPlayer === 'O') {
+        setTimeout(computerMove, 500);
+      }
+    }
+  }
+}
+
+function computerMove() {
+  if (gameOver) return;
+
+  const bestMove = getBestMove();
+  const cell = document.querySelector(`[data-index='${bestMove.index}']`);
+  cell.textContent = currentPlayer;
+  boardState[bestMove.index] = currentPlayer;
+
+  if (checkWinner(currentPlayer)) {
+    message.textContent = `${currentPlayer} wins!`;
+    gameOver = true;
+  } else if (checkDraw()) {
+    message.textContent = 'It\'s a draw!';
+    gameOver = true;
+  } else {
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+  }
+}
+
+function getBestMove() {
+  let bestScore = -Infinity;
+  let bestMove;
+
+  for (let i = 0; i < boardState.length; i++) {
+    if (boardState[i] === '') {
+      boardState[i] = currentPlayer;
+      const score = minimax(boardState, 0, false);
+      boardState[i] = '';
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = { index: i, score };
+      }
+    }
+  }
+
+  return bestMove;
+}
+
+function minimax(boardState, depth, isMaximizing) {
+  const scores = {
+    X: -1,
+    O: 1,
+    draw: 0
+  };
+
+  if (checkWinner('X')) {
+    return scores.X - depth;
+  } else if (checkWinner('O')) {
+    return scores.O + depth;
+  } else if (checkDraw()) {
+    return scores.draw;
+  }
+
+  if (isMaximizing) {
+    let bestScore = -Infinity;
+    for (let i = 0; i < boardState.length; i++) {
+      if (boardState[i] === '') {
+        boardState[i] = 'O';
+        const score = minimax(boardState, depth + 1, false);
+        boardState[i] = '';
+        bestScore = Math.max(bestScore, score);
+      }
+    }
+    return bestScore;
+  } else {
+    let bestScore = Infinity;
+    for (let i = 0; i < boardState.length; i++) {
+      if (boardState[i] === '') {
+        boardState[i] = 'X';
+        const score = minimax(boardState, depth + 1, true);
+        boardState[i] = '';
+        bestScore = Math.min(bestScore, score);
+      }
+    }
+    return bestScore;
+  }
+}
+
+function checkWinner(player) {
+  const winningCombos = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+    [0, 4, 8], [2, 4, 6]             // diagonals
+  ];
+
+  return winningCombos.some(combo => {
+    const [a, b, c] = combo;
+    return boardState[a] === player && boardState[b] === player && boardState[c] === player;
+  });
+}
+
+function checkDraw() {
+  return boardState.every(cell => cell !== '');
+}
+
+function resetGame() {
+  currentPlayer = 'X';
+  boardState = Array(9).fill('');
+  gameOver = false;
+  message.textContent = '';
+  document.querySelectorAll('.cell').forEach(cell => cell.textContent = '');
+}
+
+board.addEventListener('click', handleClick);
+resetBtn.addEventListener('click', resetGame);
+
+  </script>
+</body>
+</html>
