@@ -1,3 +1,8 @@
+Challenge your strategic thinking with our Tic Tac Toe game! Play against the computer and see if you can outsmart it in this classic game of X's and O's. Are you ready to take on the AI and claim victory?
+
+
+
+
 Tic Tac Toe
 Welcome to Tic Tac Toe! This is a simple web-based implementation of the classic paper-and-pencil game, where you can challenge yourself against a computer opponent.
 
